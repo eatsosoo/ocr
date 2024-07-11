@@ -21,13 +21,6 @@
         <div ref="canvas-container" style="width:100%;margin:0 auto;">
             <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">Camera</div>
             <canvas ref="canvas"></canvas>
-            <br>
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
-                Cropped Image
-            </div>
-            <div class="flex justify-center">
-                <img id="croppedImage" alt="Cropped Image" />
-            </div>
         </div>
         <div class="text-center pt-3">
             <!-- ② Status によって表示ブロックを切り替える -->
@@ -38,6 +31,14 @@
                     スナップショットを取る
                 </button>
             </div>
+
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
+                Cropped Image
+            </div>
+            <div class="flex justify-center mb-2">
+                <img id="croppedImage" alt="Cropped Image" />
+            </div>
+
             <!-- pause： スナップショットを撮ったので一次停止 -->
             <div v-if="status=='pause'">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
@@ -46,7 +47,7 @@
                 </button>
                 <button
                     class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 ml-1 border border-blue-500 hover:border-transparent rounded"
-                    @click="reset">
+                    @click="back">
                     戻る
                 </button>
             </div>
@@ -214,13 +215,8 @@
                         iFrame.className = 'notification-iframe';
                         document.body.appendChild(iFrame);
                     },
-                    reset() {
-                        this.status = 'none';
-                        this.dataUrl = '';
-                        this.playVideo();
-                        document.getElementById('croppedImage').src = this.dataUrl;
-                        document.getElementById('result_str').innerHTML = "";
-                        this.initialize();
+                    back() {
+                        this.status = 'play';
                     }
                 },
                 mounted() {
