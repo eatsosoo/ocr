@@ -145,7 +145,7 @@
                     runOcr() { // ③ スナップショットからテキストを抽出
                         this.status = 'reading';
                         Tesseract.recognize(this.dataUrl, 'jpn', {            //日本語変換　１が①になってしまう　20240629
-                            //Tesseract.recognize(this.dataUrl, 'eng', {
+                        // Tesseract.recognize(this.dataUrl, 'eng', {
                             logger: log => {
                                 console.log(log);
                             }
@@ -182,6 +182,7 @@
                     },
                     takeSnapshot() { // ② スナップショットを取る（カメラは一時停止）
                         this.makeSound();               // 音を鳴らす
+                        this.resetText();                // テキストをリセット
                         // this.pauseVideo();
                         this.status = 'pause';
 
@@ -217,6 +218,9 @@
                     },
                     back() {
                         this.status = 'play';
+                    },
+                    resetText() {
+                        document.getElementById('result_str').innerHTML = "";
                     }
                 },
                 mounted() {
