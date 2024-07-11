@@ -181,8 +181,8 @@
                     },
                     takeSnapshot() { // ② スナップショットを取る（カメラは一時停止）
                         this.makeSound();               // 音を鳴らす
-                        this.pauseVideo();
-                        //this.dataUrl = this.canvas.toDataURL();
+                        // this.pauseVideo();
+                        this.status = 'pause';
 
                         // Assuming these are the coordinates and size of the red square
                         const squareSize = this.squareSize; // Size of the square
@@ -218,6 +218,9 @@
                         this.status = 'none';
                         this.dataUrl = '';
                         this.playVideo();
+                        document.getElementById('croppedImage').src = this.dataUrl;
+                        document.getElementById('result_str').innerHTML = "";
+                        this.initialize();
                     }
                 },
                 mounted() {
