@@ -33,14 +33,32 @@
             </div>
 
             <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
+                Snapshot Image
+            </div>
+            <input type='range' v-model="scale" min='10' max='400' @input="scaling" style='width: 300px;'>
+            <br>
+            <div class="flex justify-center mb-2" >
+            <canvas ref="cvs" height='400'
+                @mousedown="startDrag" 
+                @mousemove="dragging" 
+                @mouseup="endDrag"
+                @mouseout="endDrag"
+                @touchstart="startDrag"
+                @touchmove="dragging"
+                @touchend="endDrag">
+            </canvas>
+            </div>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
+                @click="cropImg">
+                Crop
+            </button>
+
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
                 Cropped Image
             </div>
-            <div class="flex justify-center mb-2">
-                <img id="croppedImage" alt="Cropped Image" />
-            </div>
-
             <!-- pause： スナップショットを撮ったので一次停止 -->
-            <div v-if="status=='pause'">
+            <canvas ref='out' width='200' height='200'></canvas>
+            <div v-if="status=='pause'" class="mt-2">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
                     @click="runOcr">
                     OCR変換
@@ -81,7 +99,14 @@
                         context: null,
                         dataUrl: '',
                         status: 'none',
-                        squareSize: 250,
+                        //
+                        scale: 100,
+                        ix: 0,
+                        iy: 0,
+                        v: 1.0,
+                        mouseDown: false,
+                        sx: 0,
+                        sy: 0,
                     }
                 },
                 methods: {
@@ -121,31 +146,12 @@
                             this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
                         }
 
-                        if (this.video.paused || this.video.ended) {
-                            return; // Stop the function if the video is not playing
-                        }
-
-                        // Draw the video frame to the canvas
-                        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-
-                        // Draw a square
-                        // Define the square's properties
-                        const squareSize = this.squareSize; // Size of the square
-                        const squareX = (this.canvas.width - squareSize) / 2; // Center the square horizontally
-                        const squareY = (this.canvas.height - squareSize) / 2; // Center the square vertically
-
-                        this.context.beginPath();
-                        this.context.rect(squareX, squareY, squareSize, squareSize); // Define the square
-                        this.context.strokeStyle = 'red'; // Square color
-                        this.context.lineWidth = 5; // Square border thickness
-                        this.context.stroke(); // Draw the square border
-
                         requestAnimationFrame(this.render);
                     },
                     runOcr() { // ③ スナップショットからテキストを抽出
                         this.status = 'reading';
                         Tesseract.recognize(this.dataUrl, 'jpn', {            //日本語変換　１が①になってしまう　20240629
-                        // Tesseract.recognize(this.dataUrl, 'eng', {
+                            // Tesseract.recognize(this.dataUrl, 'eng', {
                             logger: log => {
                                 console.log(log);
                             }
@@ -183,28 +189,10 @@
                     takeSnapshot() { // ② スナップショットを取る（カメラは一時停止）
                         this.makeSound();               // 音を鳴らす
                         this.resetText();                // テキストをリセット
-                        // this.pauseVideo();
-                        this.status = 'pause';
+                        this.pauseVideo();
 
-                        // Assuming these are the coordinates and size of the red square
-                        const squareSize = this.squareSize; // Size of the square
-                        const squareX = (this.canvas.width - squareSize) / 2; // Center the square horizontally
-                        const squareY = (this.canvas.height - squareSize) / 2;
-
-                        // Create a temporary canvas to capture the square area
-                        const tempCanvas = document.createElement('canvas');
-                        tempCanvas.width = squareSize;
-                        tempCanvas.height = squareSize;
-                        const tempCtx = tempCanvas.getContext('2d');
-
-                        // Draw only the square area from the original canvas to the temporary canvas
-                        tempCtx.drawImage(this.canvas, squareX, squareY, squareSize, squareSize, 0, 0, squareSize, squareSize);
-
-                        // Convert the temporary canvas content to a data URL
-                        this.dataUrl = tempCanvas.toDataURL();
-
-                        // Display the cropped image
-                        document.getElementById('croppedImage').src = this.dataUrl;
+                        const canvas = this.$refs.cvs;
+                        this.drawCanvas(canvas.width / 2, canvas.height / 2, true);
                     },
                     makeSound() { // ④ おまけ：スナップショットをとるときに音をならす
                         document.querySelectorAll('.notification-iframe').forEach(el => el.remove()); // 全ての通知用 iFrame を削除
@@ -221,10 +209,74 @@
                     },
                     resetText() {
                         document.getElementById('result_str').innerHTML = "";
-                    }
+                    },
+                    // handle mouse events
+                    scaling() {
+                        this.v = this.scale * 0.01;
+                        this.drawCanvas(this.ix, this.iy);
+                    },
+                    drawCanvas(x, y, first = false) {
+                        const canvasCamera = this.$refs.canvas;
+
+                        const cvs = this.$refs.cvs;
+                        const ctx = cvs.getContext('2d');
+                        ctx.fillStyle = 'rgb(200, 200, 200)';
+                        ctx.fillRect(0, 0, cvs.width, cvs.height);
+                        
+                        ctx.drawImage(this.video, 0, 0, canvasCamera.width * 2, canvasCamera.height * 2, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
+                        
+                        ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
+                        ctx.strokeRect((cvs.width - this.$refs.out.width) / 2, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
+                    },
+                    cropImg() {
+                        const cvs = this.$refs.cvs; // Gets a reference to the source canvas
+                        const ctx = cvs.getContext('2d');
+
+                        // Coordinates and size of the red square
+                        const x = (cvs.width - this.$refs.out.width) / 2;
+                        const y = (cvs.height - this.$refs.out.height) / 2;
+                        const width = this.$refs.out.width;
+                        const height = this.$refs.out.height;
+
+                        // Get the image data of the red square
+                        const imageData = ctx.getImageData(x, y, width, height);
+
+                        // Gets a reference to canvas 'out' and its context
+                        const outCanvas = this.$refs.out;
+                        const outCtx = outCanvas.getContext('2d');
+
+                        // Set the size of the 'out' canvas relative to the cropped image (if needed)
+                        outCanvas.width = width;
+                        outCanvas.height = height;
+
+                        // Draw cropped image to canvas 'out'
+                        outCtx.putImageData(imageData, 0, 0);
+                        this.dataUrl = outCanvas.toDataURL();
+                    },
+                    startDrag(ev) {
+                        this.mouseDown = true;
+                        this.sx = ev.pageX || ev.touches[0].pageX;
+                        this.sy = ev.pageY || ev.touches[0].pageY;
+                    },
+                    dragging(ev) {
+                        if (!this.mouseDown) return;
+                        const x = ev.pageX || ev.touches[0].pageX;
+                        const y = ev.pageY || ev.touches[0].pageY;
+                        this.drawCanvas(this.ix + (this.sx - x) / this.v, this.iy + (this.sy - y) / this.v);
+                    },
+                    endDrag(ev) {
+                        if (!this.mouseDown) return;
+                        this.mouseDown = false;
+                        const x = ev.pageX || ev.changedTouches[0].pageX;
+                        const y = ev.pageY || ev.changedTouches[0].pageY;
+                        this.ix += (this.sx - x) / this.v;
+                        this.iy += (this.sy - y) / this.v;
+                    },
+
                 },
                 mounted() {
                     this.initialize();
+                    this.$refs.cvs.width = window.innerWidth;
                 }
             }).mount('#app');
         }
