@@ -37,7 +37,7 @@
             </div>
             <input type='range' v-model="scale" min='10' max='400' @input="scaling" style='width: 300px;'>
             <br>
-            <div class="flex justify-center mb-2" >
+            
             <canvas ref="cvs" height='400'
                 @mousedown="startDrag" 
                 @mousemove="dragging" 
@@ -47,7 +47,7 @@
                 @touchmove="dragging"
                 @touchend="endDrag">
             </canvas>
-            </div>
+         
             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
                 @click="cropImg">
                 Crop
@@ -57,7 +57,9 @@
                 Cropped Image
             </div>
             <!-- pause： スナップショットを撮ったので一次停止 -->
-            <canvas ref='out' width='200' height='200'></canvas>
+            <div class="flex justify-center mb-2" >
+                <canvas ref='out' width='200' height='200'></canvas>
+            </div>
             <div v-if="status=='pause'" class="mt-2">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
                     @click="runOcr">
@@ -257,12 +259,15 @@
                         this.mouseDown = true;
                         this.sx = ev.pageX || ev.touches[0].pageX;
                         this.sy = ev.pageY || ev.touches[0].pageY;
+                        // Disable scrolling
+                        document.body.style.overflow = 'hidden';
                     },
                     dragging(ev) {
                         if (!this.mouseDown) return;
                         const x = ev.pageX || ev.touches[0].pageX;
                         const y = ev.pageY || ev.touches[0].pageY;
                         this.drawCanvas(this.ix + (this.sx - x) / this.v, this.iy + (this.sy - y) / this.v);
+                        ev.preventDefault(); // Optionally prevent default if dragging is done by touch
                     },
                     endDrag(ev) {
                         if (!this.mouseDown) return;
@@ -271,6 +276,8 @@
                         const y = ev.pageY || ev.changedTouches[0].pageY;
                         this.ix += (this.sx - x) / this.v;
                         this.iy += (this.sy - y) / this.v;
+                        // Re-enable scrolling
+                        document.body.style.overflow = '';
                     },
 
                 },
