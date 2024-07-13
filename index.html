@@ -156,7 +156,7 @@
                         //
                         snapshot: null,
                         SQUARE_SIZE: 250,
-                        SNAPSHOT_SIZE_X: window.innerWidth - 100,
+                        SNAPSHOT_SIZE_X: window.innerWidth - 50,
                         SNAPSHOT_SIZE_Y: 300,
                         //
                         openSnapshot: true,
@@ -331,6 +331,12 @@
                         if (!this.mouseDown) return;
                         const x = ev.pageX || ev.touches[0].pageX;
                         const y = ev.pageY || ev.touches[0].pageY;
+                        if (this.ix === 0) {
+                            this.ix = this.video.videoWidth / 4;
+                        }
+                        if (this.iy === 0) {
+                            this.iy = this.video.videoHeight / 4;
+                        }
                         this.drawCanvas(this.ix + (this.sx - x) / this.v, this.iy + (this.sy - y) / this.v);
                         ev.preventDefault(); // Optionally prevent default if dragging is done by touch
                     },
