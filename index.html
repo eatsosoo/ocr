@@ -32,10 +32,10 @@
                 </button>
             </div>
 
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit text-left">
                 Snapshot Image
             </div>
-            <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'>
+            <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;' class="mb-2">
             <br>
             
             <canvas ref="cvs" height='400'
@@ -53,14 +53,14 @@
                 Crop
             </button>
 
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit text-left">
                 Cropped Image
             </div>
             <!-- pause： スナップショットを撮ったので一次停止 -->
             <div class="flex justify-center mb-2" >
                 <canvas ref='out' width='200' height='200'></canvas>
             </div>
-            <div v-if="status=='pause'" class="mt-2">
+            <div v-if="dataUrl" class="mt-2">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
                     @click="runOcr">
                     OCR変換
@@ -196,15 +196,15 @@
                         this.pauseVideo();
 
                         const canvas = this.$refs.cvs;
+                        const canvasCamera = this.$refs.canvas;
                         const context = canvas.getContext('2d');
-                        canvas.width = this.video.videoWidth;
-                        canvas.height = this.video.videoHeight;
+                        canvas.width = canvasCamera.width;
+                        canvas.height = canvasCamera.height;
                         context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
 
                         // Cập nhật this.snapshot với dữ liệu hình ảnh mới
                         this.snapshot = canvas.toDataURL();
                         this.drawCanvas(canvas.width / 2, canvas.height / 2, true);
-                        this.cropImg();
                     },
                     makeSound() { // ④ おまけ：スナップショットをとるときに音をならす
                         document.querySelectorAll('.notification-iframe').forEach(el => el.remove()); // 全ての通知用 iFrame を削除
