@@ -81,7 +81,7 @@
                 <div v-if="openSnapshot">
                     <div v-show="snapshot">
                         <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'
-                            class="mb-2">
+                            class="mb-2 py-2">
                         <br>
                         <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X" @mousedown="startDrag"
                             @mousemove="dragging" @mouseup="endDrag" @mouseout="endDrag" @touchstart="startDrag"
