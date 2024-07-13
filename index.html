@@ -35,7 +35,7 @@
             <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">
                 Snapshot Image
             </div>
-            <input type='range' v-model="scale" min='10' max='400' @input="scaling" style='width: 300px;'>
+            <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'>
             <br>
             
             <canvas ref="cvs" height='400'
@@ -236,7 +236,7 @@
                             ctx.drawImage(image, 0, 0, canvasCamera.width * 2, canvasCamera.height * 2, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
                             
                             ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
-                            ctx.strokeRect((cvs.width - this.$refs.out.width) / 4, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
+                            ctx.strokeRect((cvs.width - this.$refs.out.width) / 2, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
                         };
                         image.src = this.snapshot;
                     },
@@ -245,7 +245,7 @@
                         const ctx = cvs.getContext('2d');
 
                         // Coordinates and size of the red square
-                        const x = (cvs.width - this.$refs.out.width) / 4;
+                        const x = (cvs.width - this.$refs.out.width) / 2;
                         const y = (cvs.height - this.$refs.out.height) / 2;
                         const width = this.$refs.out.width;
                         const height = this.$refs.out.height;
