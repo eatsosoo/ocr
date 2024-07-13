@@ -279,6 +279,7 @@
                         image.onload = () => {
                             const canvasCamera = this.$refs.canvas;
                             const cvs = this.$refs.cvs;
+                            cvs.height = this.SNAPSHOT_SIZE_Y;
                             const ctx = cvs.getContext('2d');
                             ctx.fillStyle = 'rgb(200, 200, 200)';
                             ctx.fillRect(0, 0, cvs.width, cvs.height);
