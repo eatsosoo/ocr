@@ -67,7 +67,7 @@
                 </button>
                 <button
                     class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 ml-1 border border-blue-500 hover:border-transparent rounded"
-                    @click="back">
+                    @click="playVideo">
                     戻る
                 </button>
             </div>
@@ -109,6 +109,8 @@
                         mouseDown: false,
                         sx: 0,
                         sy: 0,
+                        //
+                        snapshot: null,
                     }
                 },
                 methods: {
@@ -194,7 +196,15 @@
                         this.pauseVideo();
 
                         const canvas = this.$refs.cvs;
+                        const context = canvas.getContext('2d');
+                        canvas.width = this.video.videoWidth;
+                        canvas.height = this.video.videoHeight;
+                        context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
+
+                        // Cập nhật this.snapshot với dữ liệu hình ảnh mới
+                        this.snapshot = canvas.toDataURL();
                         this.drawCanvas(canvas.width / 2, canvas.height / 2, true);
+                        this.cropImg();
                     },
                     makeSound() { // ④ おまけ：スナップショットをとるときに音をならす
                         document.querySelectorAll('.notification-iframe').forEach(el => el.remove()); // 全ての通知用 iFrame を削除
@@ -206,9 +216,6 @@
                         iFrame.className = 'notification-iframe';
                         document.body.appendChild(iFrame);
                     },
-                    back() {
-                        this.status = 'play';
-                    },
                     resetText() {
                         document.getElementById('result_str').innerHTML = "";
                     },
@@ -217,25 +224,28 @@
                         this.v = this.scale * 0.01;
                         this.drawCanvas(this.ix, this.iy);
                     },
-                    drawCanvas(x, y, first = false) {
-                        const canvasCamera = this.$refs.canvas;
-
-                        const cvs = this.$refs.cvs;
-                        const ctx = cvs.getContext('2d');
-                        ctx.fillStyle = 'rgb(200, 200, 200)';
-                        ctx.fillRect(0, 0, cvs.width, cvs.height);
-                        
-                        ctx.drawImage(this.video, 0, 0, canvasCamera.width * 2, canvasCamera.height * 2, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
-                        
-                        ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
-                        ctx.strokeRect((cvs.width - this.$refs.out.width) / 2, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
+                    drawCanvas(x, y) {
+                        const image = new Image();
+                        image.onload = () => {
+                            const canvasCamera = this.$refs.canvas;
+                            const cvs = this.$refs.cvs;
+                            const ctx = cvs.getContext('2d');
+                            ctx.fillStyle = 'rgb(200, 200, 200)';
+                            ctx.fillRect(0, 0, cvs.width, cvs.height);
+                            
+                            ctx.drawImage(image, 0, 0, canvasCamera.width * 2, canvasCamera.height * 2, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
+                            
+                            ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
+                            ctx.strokeRect((cvs.width - this.$refs.out.width) / 4, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
+                        };
+                        image.src = this.snapshot;
                     },
                     cropImg() {
                         const cvs = this.$refs.cvs; // Gets a reference to the source canvas
                         const ctx = cvs.getContext('2d');
 
                         // Coordinates and size of the red square
-                        const x = (cvs.width - this.$refs.out.width) / 2;
+                        const x = (cvs.width - this.$refs.out.width) / 4;
                         const y = (cvs.height - this.$refs.out.height) / 2;
                         const width = this.$refs.out.width;
                         const height = this.$refs.out.height;
