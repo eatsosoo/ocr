@@ -5,6 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
     <!-- ① CDNでCSSを読み込み -->
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .slide-fade-enter-active {
+            animation: slide-fade-in 0.5s ease-out forwards;
+        }
+
+        .slide-fade-leave-active {
+            animation: slide-fade-out 0.5s ease-out forwards;
+        }
+
+        @keyframes slide-fade-in {
+            0% {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slide-fade-out {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -19,7 +53,8 @@
     <div id="app" hidden>
         <!-- ビデオ表示枠 -->
         <div ref="canvas-container" style="width:100%;margin:0 auto;">
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit">Camera</div>
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 rounded w-fit">Camera<i
+                    class="fas fa-camera ml-2"></i></div>
             <canvas ref="canvas"></canvas>
         </div>
         <div class="text-center pt-3">
@@ -32,32 +67,38 @@
                 </button>
             </div>
 
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit text-left">
-                Snapshot Image
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 rounded w-fit flex justify-between items-center"
+                @click="activeCropSnapshot">
+                <div>Snapshot Image</div>
+                <template v-if="snapshot">
+                    <i v-if="openSnapshot" class="fa fa-sort-down"></i>
+                    <i v-else class="fa fa-sort-up"></i>
+                </template>
             </div>
-            <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;' class="mb-2">
-            <br>
-            
-            <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X"
-                @mousedown="startDrag" 
-                @mousemove="dragging" 
-                @mouseup="endDrag"
-                @mouseout="endDrag"
-                @touchstart="startDrag"
-                @touchmove="dragging"
-                @touchend="endDrag">
-            </canvas>
-         
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
-                @click="cropImg">
-                Crop
-            </button>
 
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 mx-2 rounded w-fit text-left">
+            <transition name="slide-fade">
+                <div v-if="openSnapshot">
+                    <div v-show="snapshot">
+                        <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'
+                            class="mb-2">
+                        <br>
+                        <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X" @mousedown="startDrag"
+                            @mousemove="dragging" @mouseup="endDrag" @mouseout="endDrag" @touchstart="startDrag"
+                            @touchmove="dragging" @touchend="endDrag">
+                        </canvas>
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded" @click="cropImg">
+                            Crop
+                        </button>
+                    </div>
+                    <div v-show="snapshot === null">Not have snapshot image</div>
+                </div>
+            </transition>
+
+            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 rounded w-fit text-left">
                 Cropped Image
             </div>
             <!-- pause： スナップショットを撮ったので一次停止 -->
-            <div class="flex justify-center mb-2" >
+            <div class="flex justify-center mb-2">
                 <canvas ref='out' :width="SQUARE_SIZE" :height="SQUARE_SIZE"></canvas>
             </div>
             <div v-if="dataUrl" class="mt-2">
@@ -67,7 +108,7 @@
                 </button>
                 <button
                     class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 ml-1 border border-blue-500 hover:border-transparent rounded"
-                    @click="playVideo">
+                    @click="back">
                     戻る
                 </button>
             </div>
@@ -114,6 +155,10 @@
                         SQUARE_SIZE: 250,
                         SNAPSHOT_SIZE_X: window.innerWidth,
                         SNAPSHOT_SIZE_Y: 300,
+                        //
+                        openSnapshot: true,
+                        storeX: 0,
+                        storeY: 0,
                     }
                 },
                 methods: {
@@ -228,6 +273,8 @@
                         this.drawCanvas(this.ix, this.iy);
                     },
                     drawCanvas(x, y) {
+                        this.storeX = x;
+                        this.storeY = y;
                         const image = new Image();
                         image.onload = () => {
                             const canvasCamera = this.$refs.canvas;
@@ -235,9 +282,9 @@
                             const ctx = cvs.getContext('2d');
                             ctx.fillStyle = 'rgb(200, 200, 200)';
                             ctx.fillRect(0, 0, cvs.width, cvs.height);
-                            
+
                             ctx.drawImage(image, 0, 0, canvasCamera.width * 2, canvasCamera.height * 2, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
-                            
+
                             ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
                             ctx.strokeRect((cvs.width - this.$refs.out.width) / 2, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
                         };
@@ -292,11 +339,29 @@
                         // Re-enable scrolling
                         document.body.style.overflow = '';
                     },
-
+                    back() {
+                        this.dataUrl = '';
+                        this.playVideo();
+                    },
+                    activeCropSnapshot() {
+                        if (!this.snapshot) {
+                            return;
+                        }
+                        this.openSnapshot = !this.openSnapshot;
+                    }
                 },
                 mounted() {
                     this.initialize();
-                }
+                },
+                watch: {
+                    openSnapshot(newVal) {
+                      if (newVal === true) {
+                        this.$nextTick(() => {
+                          this.drawCanvas(this.storeX, this.storeY);
+                        });
+                      }
+                    }
+                  }
             }).mount('#app');
         }
 
