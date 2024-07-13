@@ -83,10 +83,12 @@
                         <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'
                             class="mb-2 py-2">
                         <br>
-                        <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X" @mousedown="startDrag"
-                            @mousemove="dragging" @mouseup="endDrag" @mouseout="endDrag" @touchstart="startDrag"
-                            @touchmove="dragging" @touchend="endDrag">
-                        </canvas>
+                        <div class="flex justify-center">
+                            <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X" @mousedown="startDrag"
+                                @mousemove="dragging" @mouseup="endDrag" @mouseout="endDrag" @touchstart="startDrag"
+                                @touchmove="dragging" @touchend="endDrag">
+                            </canvas>
+                        </div>
                         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded mt-2" @click="cropImg">
                             Crop
                         </button>
@@ -154,7 +156,7 @@
                         //
                         snapshot: null,
                         SQUARE_SIZE: 250,
-                        SNAPSHOT_SIZE_X: window.innerWidth,
+                        SNAPSHOT_SIZE_X: window.innerWidth - 100,
                         SNAPSHOT_SIZE_Y: 300,
                         //
                         openSnapshot: true,
@@ -280,6 +282,7 @@
                         image.onload = () => {
                             const canvasCamera = this.$refs.canvas;
                             const cvs = this.$refs.cvs;
+                            cvs.width = this.SNAPSHOT_SIZE_X;
                             cvs.height = this.SNAPSHOT_SIZE_Y;
                             const ctx = cvs.getContext('2d');
                             ctx.fillStyle = 'rgb(200, 200, 200)';
