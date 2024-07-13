@@ -6,6 +6,7 @@
     <!-- ① CDNでCSSを読み込み -->
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet">
     <style>
         .slide-fade-enter-active {
             animation: slide-fade-in 0.5s ease-out forwards;
@@ -53,7 +54,7 @@
     <div id="app" hidden>
         <!-- ビデオ表示枠 -->
         <div ref="canvas-container" style="width:100%;margin:0 auto;">
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 rounded w-fit">Camera<i
+            <div class="border-double border-4 border-green-600 px-4 py-1 my-2 rounded w-fit">Camera<i
                     class="fas fa-camera ml-2"></i></div>
             <canvas ref="canvas"></canvas>
         </div>
@@ -67,9 +68,9 @@
                 </button>
             </div>
 
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 rounded w-fit flex justify-between items-center"
+            <div class="border-double border-4 border-green-600 px-4 py-1 my-2 rounded w-fit flex justify-between items-center"
                 @click="activeCropSnapshot">
-                <div>Snapshot Image</div>
+                <div>Snapshot Image<i class="fa fa-image ml-2"></i></div>
                 <template v-if="snapshot">
                     <i v-if="openSnapshot" class="fa fa-sort-down"></i>
                     <i v-else class="fa fa-sort-up"></i>
@@ -94,8 +95,8 @@
                 </div>
             </transition>
 
-            <div class="border-double border-4 border-blue-600 px-4 py-1 my-2 rounded w-fit text-left">
-                Cropped Image
+            <div class="border-double border-4 border-green-600 px-4 py-1 my-2 rounded w-fit text-left">
+                Cropped Image <i class="fa fa-square"></i>
             </div>
             <!-- pause： スナップショットを撮ったので一次停止 -->
             <div class="flex justify-center mb-2">
