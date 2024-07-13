@@ -54,7 +54,7 @@
     <div id="app" hidden>
         <!-- ビデオ表示枠 -->
         <div ref="canvas-container" style="width:100%;margin:0 auto;">
-            <div class="border-double border-4 border-green-600 px-4 py-1 my-2 rounded w-fit">Camera<i
+            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit text-white">Camera<i
                     class="fas fa-camera ml-2"></i></div>
             <canvas ref="canvas"></canvas>
         </div>
@@ -68,7 +68,7 @@
                 </button>
             </div>
 
-            <div class="border-double border-4 border-green-600 px-4 py-1 my-2 rounded w-fit flex justify-between items-center"
+            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit flex justify-between items-center text-white"
                 @click="activeCropSnapshot">
                 <div>Snapshot Image<i class="fa fa-image ml-2"></i></div>
                 <template v-if="snapshot">
@@ -95,7 +95,7 @@
                 </div>
             </transition>
 
-            <div class="border-double border-4 border-green-600 px-4 py-1 my-2 rounded w-fit text-left">
+            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit text-left text-white">
                 Cropped Image <i class="fa fa-square"></i>
             </div>
             <!-- pause： スナップショットを撮ったので一次停止 -->
