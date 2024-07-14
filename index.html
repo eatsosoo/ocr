@@ -54,56 +54,49 @@
     <div id="app" hidden>
         <!-- ビデオ表示枠 -->
         <div ref="canvas-container" style="width:100%;margin:0 auto;">
-            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit text-white">Camera<i
-                    class="fas fa-camera ml-2"></i></div>
-            <canvas ref="canvas"></canvas>
+            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit text-white">
+                <div v-if="status=='play'">Camera<i class="fas fa-camera ml-2"></i></div>
+                <div v-else-if="status=='snapshot'">Snapshot Image<i class="fa fa-image ml-2"></i></div>
+                <div v-else>Cropped Image <i class="fa fa-square"></i></div>
+            </div>
+
+            <!-- Camera -->
+            <div v-show="status=='play'">
+                <canvas ref="canvas"></canvas>
+            </div>
+            <!-- Snapshot Image -->
+            <div v-show="status=='snapshot'" class="flex justify-center flex-col items-center">
+                <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'
+                    class="mb-2 py-2">
+                <br>
+                <div>
+                    <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X" @mousedown="startDrag"
+                        @mousemove="dragging" @mouseup="endDrag" @mouseout="endDrag" @touchstart="startDrag"
+                        @touchmove="dragging" @touchend="endDrag">
+                    </canvas>
+                </div>
+            </div>
+            <!-- Cropped Image -->
+            <div v-show="status=='crop' || status=='reading'" class="flex justify-center mb-2">
+                <canvas ref='out' :width="SQUARE_SIZE" :height="SQUARE_SIZE"></canvas>
+            </div>
         </div>
+
         <div class="text-center pt-3">
             <!-- ② Status によって表示ブロックを切り替える -->
             <!-- play： カメラの映像をキャンバスにリアルタイムで表示 -->
-            <div v-if="status=='play'">
-                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded"
-                    @click="takeSnapshot">
+            <div>
+                <button v-if="status=='play'"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded" @click="takeSnapshot">
                     スナップショットを取る
+                </button>
+                <button v-else-if="status=='snapshot'"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded mt-2"
+                    @click="cropImg">
+                    Crop
                 </button>
             </div>
 
-            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit flex justify-between items-center text-white"
-                @click="activeCropSnapshot">
-                <div>Snapshot Image<i class="fa fa-image ml-2"></i></div>
-                <template v-if="snapshot">
-                    <i v-if="openSnapshot" class="fa fa-sort-down"></i>
-                    <i v-else class="fa fa-sort-up"></i>
-                </template>
-            </div>
-
-            <transition name="slide-fade">
-                <div v-if="openSnapshot">
-                    <div v-show="snapshot">
-                        <input type='range' v-model="scale" min='10' max='300' @input="scaling" style='width: 300px;'
-                            class="mb-2 py-2">
-                        <br>
-                        <div class="flex justify-center">
-                            <canvas ref="cvs" :height="SNAPSHOT_SIZE_Y" :width="SNAPSHOT_SIZE_X" @mousedown="startDrag"
-                                @mousemove="dragging" @mouseup="endDrag" @mouseout="endDrag" @touchstart="startDrag"
-                                @touchmove="dragging" @touchend="endDrag">
-                            </canvas>
-                        </div>
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded mt-2" @click="cropImg">
-                            Crop
-                        </button>
-                    </div>
-                    <div v-show="snapshot === null">Not have snapshot image</div>
-                </div>
-            </transition>
-
-            <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit text-left text-white">
-                Cropped Image <i class="fa fa-square"></i>
-            </div>
-            <!-- pause： スナップショットを撮ったので一次停止 -->
-            <div class="flex justify-center mb-2">
-                <canvas ref='out' :width="SQUARE_SIZE" :height="SQUARE_SIZE"></canvas>
-            </div>
             <div v-if="dataUrl" class="mt-2">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded"
                     @click="runOcr">
@@ -111,7 +104,7 @@
                 </button>
                 <button
                     class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 ml-1 border border-blue-500 hover:border-transparent rounded"
-                    @click="back">
+                    @click="reset">
                     戻る
                 </button>
             </div>
@@ -159,9 +152,10 @@
                         SNAPSHOT_SIZE_X: window.innerWidth - 50,
                         SNAPSHOT_SIZE_Y: 300,
                         //
-                        openSnapshot: true,
                         storeX: 0,
                         storeY: 0,
+                        //
+                        img: null,
                     }
                 },
                 methods: {
@@ -230,7 +224,7 @@
                             })
                             .catch(error => console.log(error))
                             .finally(() => {
-                                this.playVideo();
+                                // this.playVideo();
                             });
                     },
                     playVideo() {
@@ -245,6 +239,7 @@
                         this.makeSound();               // 音を鳴らす
                         this.resetText();                // テキストをリセット
                         this.pauseVideo();
+                        this.status = 'snapshot';
 
                         const canvas = this.$refs.cvs;
                         const canvasCamera = this.$refs.canvas;
@@ -270,9 +265,15 @@
                     resetText() {
                         document.getElementById('result_str').innerHTML = "";
                     },
-                    // handle mouse events
+                    // handle draw canvas
                     scaling() {
                         this.v = this.scale * 0.01;
+                        if (this.ix === 0) {
+                            this.ix = this.img.width / 4;
+                        }
+                        if (this.iy === 0) {
+                            this.iy = this.img.height / 4;
+                        }
                         this.drawCanvas(this.ix, this.iy);
                     },
                     drawCanvas(x, y) {
@@ -294,6 +295,7 @@
                             ctx.strokeRect((cvs.width - this.$refs.out.width) / 2, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
                         };
                         image.src = this.snapshot;
+                        this.img = image;
                     },
                     cropImg() {
                         const cvs = this.$refs.cvs; // Gets a reference to the source canvas
@@ -319,26 +321,26 @@
                         // Draw cropped image to canvas 'out'
                         outCtx.putImageData(imageData, 0, 0);
                         this.dataUrl = outCanvas.toDataURL();
+
+                        this.status = 'crop';
                     },
+                    // handle mouse events
                     startDrag(ev) {
                         this.mouseDown = true;
                         this.sx = ev.pageX || ev.touches[0].pageX;
                         this.sy = ev.pageY || ev.touches[0].pageY;
-                        // Disable scrolling
-                        document.body.style.overflow = 'hidden';
                     },
                     dragging(ev) {
                         if (!this.mouseDown) return;
                         const x = ev.pageX || ev.touches[0].pageX;
                         const y = ev.pageY || ev.touches[0].pageY;
                         if (this.ix === 0) {
-                            this.ix = this.video.videoWidth / 4;
+                            this.ix = this.img.width / 4;
                         }
                         if (this.iy === 0) {
-                            this.iy = this.video.videoHeight / 4;
+                            this.iy = this.img.height / 4;
                         }
                         this.drawCanvas(this.ix + (this.sx - x) / this.v, this.iy + (this.sy - y) / this.v);
-                        ev.preventDefault(); // Optionally prevent default if dragging is done by touch
                     },
                     endDrag(ev) {
                         if (!this.mouseDown) return;
@@ -347,32 +349,21 @@
                         const y = ev.pageY || ev.changedTouches[0].pageY;
                         this.ix += (this.sx - x) / this.v;
                         this.iy += (this.sy - y) / this.v;
-                        // Re-enable scrolling
-                        document.body.style.overflow = '';
                     },
-                    back() {
+                    reset() {
                         this.dataUrl = '';
+                        this.snapshot = null;
+                        this.scale = 100;
+                        this.ix = 0;
+                        this.iy = 0;
+
                         this.playVideo();
+                        document.getElementById('result_str').innerHTML = '';
                     },
-                    activeCropSnapshot() {
-                        if (!this.snapshot) {
-                            return;
-                        }
-                        this.openSnapshot = !this.openSnapshot;
-                    }
                 },
                 mounted() {
                     this.initialize();
                 },
-                watch: {
-                    openSnapshot(newVal) {
-                      if (newVal === true) {
-                        this.$nextTick(() => {
-                          this.drawCanvas(this.storeX, this.storeY);
-                        });
-                      }
-                    }
-                  }
             }).mount('#app');
         }
 
