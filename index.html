@@ -78,7 +78,7 @@
             </div>
             <!-- Cropped Image -->
             <div v-show="status=='crop' || status=='reading'" class="flex justify-center mb-2">
-                <canvas ref='out' :width="SQUARE_SIZE" :height="SQUARE_SIZE"></canvas>
+                <canvas ref='out' :width="SQUARE_SIZE_CROP" :height="SQUARE_SIZE_CROP"></canvas>
             </div>
         </div>
 
@@ -148,7 +148,8 @@
                         sy: 0,
                         //
                         snapshot: null,
-                        SQUARE_SIZE: 250,
+                        SQUARE_SIZE_CROP: 250,
+                        SQUARE_SIZE_CAM: 250,
                         SNAPSHOT_SIZE_X: window.innerWidth - 50,
                         SNAPSHOT_SIZE_Y: 300,
                         //
@@ -204,7 +205,7 @@
 
                         // Draw a square
                         // Define the square's properties
-                        const squareSize = 200; // Size of the square
+                        const squareSize = this.SQUARE_SIZE_CAM; // Size of the square
                         const squareX = (this.canvas.width - squareSize) / 2; // Center the square horizontally
                         const squareY = (this.canvas.height - squareSize) / 2; // Center the square vertically
 
@@ -263,17 +264,17 @@
                         const canvas = this.$refs.cvs;
                         const canvasCamera = this.canvas;
                         const context = canvas.getContext('2d');
-                        const squareSize = 200; // Kích thước của hình vuông
-                        // Tính toán vị trí bắt đầu của hình vuông để nó nằm giữa canvas
+                        const squareSize = this.SQUARE_SIZE_CAM; // size of square
+                        // Calculate the starting position of the square to center it within the canvas
                         const offsetX = (canvasCamera.width - squareSize) / 2;
                         const offsetY = (canvasCamera.height - squareSize) / 2;
 
-                        // Đặt kích thước của canvas bằng kích thước của hình vuông
+                        // Set the size of the canvas equal to the size of the square
                         canvas.width = squareSize * 2;
                         canvas.height = squareSize * 2;
 
-                        // Chỉ vẽ phần hình ảnh nằm trong hình vuông đó
-                        context.drawImage(this.video, offsetX, offsetY, squareSize * 2, squareSize * 2, 0, 0, canvas.width, canvas.height);
+                        // Only draw the portion of the image that is within that square
+                        context.drawImage(this.canvas, offsetX + 1, offsetY + 1, squareSize - 2, squareSize - 2, 0, 0, canvas.width, canvas.height);
 
                         // Update this.snapshot with new image data
                         this.snapshot = canvas.toDataURL();
@@ -385,6 +386,7 @@
                         this.iy = 0;
 
                         this.playVideo();
+                        this.render();
                         document.getElementById('result_str').innerHTML = '';
                     },
                 },
