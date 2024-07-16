@@ -195,6 +195,25 @@
                             this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
                         }
 
+                        if (this.video.paused || this.video.ended) {
+                            return; // Stop the function if the video is not playing
+                        }
+
+                        // Draw the video frame to the canvas
+                        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+
+                        // Draw a square
+                        // Define the square's properties
+                        const squareSize = 200; // Size of the square
+                        const squareX = (this.canvas.width - squareSize) / 2; // Center the square horizontally
+                        const squareY = (this.canvas.height - squareSize) / 2; // Center the square vertically
+
+                        this.context.beginPath();
+                        this.context.rect(squareX, squareY, squareSize, squareSize); // Define the square
+                        this.context.strokeStyle = 'red'; // Square color
+                        this.context.lineWidth = 2; // Square border thickness
+                        this.context.stroke(); // Draw the square border
+
                         requestAnimationFrame(this.render);
                     },
                     runOcr() { // ③ スナップショットからテキストを抽出
@@ -244,9 +263,17 @@
                         const canvas = this.$refs.cvs;
                         const canvasCamera = this.$refs.canvas;
                         const context = canvas.getContext('2d');
-                        canvas.width = canvasCamera.width;
-                        canvas.height = canvasCamera.height;
-                        context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
+                        const squareSize = 200; // Kích thước của hình vuông
+                        // Tính toán vị trí bắt đầu của hình vuông để nó nằm giữa canvas
+                        const offsetX = (canvasCamera.width - squareSize) / 2;
+                        const offsetY = (canvasCamera.height - squareSize) / 2;
+
+                        // Đặt kích thước của canvas bằng kích thước của hình vuông
+                        canvas.width = squareSize * 2;
+                        canvas.height = squareSize * 2;
+
+                        // Chỉ vẽ phần hình ảnh nằm trong hình vuông đó
+                        context.drawImage(this.video, offsetX, offsetY, squareSize * 2, squareSize * 2, 0, 0, canvas.width, canvas.height);
 
                         // Update this.snapshot with new image data
                         this.snapshot = canvas.toDataURL();
