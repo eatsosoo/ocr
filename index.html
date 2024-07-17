@@ -55,9 +55,9 @@
         <!-- ビデオ表示枠 -->
         <div ref="canvas-container" style="width:100%;margin:0 auto;">
             <div class="border-double border-4 bg-green-500 px-4 py-1 my-2 rounded w-fit text-white">
-                <div v-if="status=='play'">Camera<i class="fas fa-camera ml-2"></i></div>
-                <div v-else-if="status=='snapshot'">Snapshot Image<i class="fa fa-image ml-2"></i></div>
-                <div v-else>Cropped Image <i class="fa fa-square"></i></div>
+                <div v-if="status=='play'">カメラ<i class="fas fa-camera ml-2"></i></div>
+                <div v-else-if="status=='snapshot'">スナップショット画像<i class="fa fa-image ml-2"></i></div>
+                <div v-else>クロップ画像<i class="fa fa-square"></i></div>
             </div>
 
             <!-- Camera -->
@@ -93,7 +93,7 @@
                 <button v-else-if="status=='snapshot'"
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-3 mr-1 rounded mt-2"
                     @click="cropImg">
-                    Crop
+                    クロップ
                 </button>
             </div>
 
