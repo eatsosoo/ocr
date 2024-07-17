@@ -264,8 +264,8 @@
                         const canvas = this.$refs.cvs;
                         const canvasCamera = this.$refs.canvas;
                         const context = canvas.getContext('2d');
-                        canvas.width = canvasCamera.width;
-                        canvas.height = canvasCamera.height;
+                        canvas.width = canvasCamera.width * 1.5;
+                        canvas.height = canvasCamera.height * 1.5;
                         context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
                         // Update this.snapshot with new image data
                         this.snapshot = canvas.toDataURL();
