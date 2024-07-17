@@ -262,20 +262,11 @@
                         this.status = 'snapshot';
 
                         const canvas = this.$refs.cvs;
-                        const canvasCamera = this.canvas;
+                        const canvasCamera = this.$refs.canvas;
                         const context = canvas.getContext('2d');
-                        const squareSize = this.SQUARE_SIZE_CAM; // size of square
-                        // Calculate the starting position of the square to center it within the canvas
-                        const offsetX = (canvasCamera.width - squareSize) / 2;
-                        const offsetY = (canvasCamera.height - squareSize) / 2;
-
-                        // Set the size of the canvas equal to the size of the square
-                        canvas.width = squareSize * 2;
-                        canvas.height = squareSize * 2;
-
-                        // Only draw the portion of the image that is within that square
-                        context.drawImage(this.canvas, offsetX + 1, offsetY + 1, squareSize - 2, squareSize - 2, 0, 0, canvas.width, canvas.height);
-
+                        canvas.width = canvasCamera.width;
+                        canvas.height = canvasCamera.height;
+                        context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
                         // Update this.snapshot with new image data
                         this.snapshot = canvas.toDataURL();
                         this.drawCanvas(canvas.width / 4, canvas.height / 4);
