@@ -78,7 +78,7 @@
             </div>
             <!-- Cropped Image -->
             <div v-show="status=='crop' || status=='reading'" class="flex justify-center mb-2">
-                <canvas ref='out' :width="SQUARE_SIZE_CROP" :height="SQUARE_SIZE_CROP"></canvas>
+                <canvas ref='out' :width="SQUARE_SIZE" :height="SQUARE_SIZE"></canvas>
             </div>
         </div>
 
@@ -148,8 +148,7 @@
                         sy: 0,
                         //
                         snapshot: null,
-                        SQUARE_SIZE_CROP: 250,
-                        SQUARE_SIZE_CAM: 250,
+                        SQUARE_SIZE: 250,
                         SNAPSHOT_SIZE_X: window.innerWidth - 50,
                         SNAPSHOT_SIZE_Y: 300,
                         //
@@ -176,8 +175,15 @@
                                 this.video = document.createElement('video');
                                 this.video.addEventListener('loadedmetadata', () => {           // メタデータが取得できるようになったら実行
                                     const canvasContainer = this.$refs['canvas-container'];
-                                    this.canvas.width = canvasContainer.offsetWidth;
-                                    this.canvas.height = parseInt(this.canvas.width * this.video.videoHeight / this.video.videoWidth);
+
+                                    // Calculate the size of the camera
+                                    const originalWidth = canvasContainer.offsetWidth;
+                                    const originalHeight = parseInt(originalWidth * this.video.videoHeight / this.video.videoWidth);
+
+                                    // Scale the canvas size down to half, simulating a zoom effect
+                                    this.canvas.width = originalWidth;
+                                    this.canvas.height = originalHeight;
+
                                     this.render();
                                     console.log("this.canvas.height", this.canvas.height);
                                     console.log("this.canvas.width", this.canvas.width);
@@ -200,12 +206,18 @@
                             return; // Stop the function if the video is not playing
                         }
 
-                        // Draw the video frame to the canvas
-                        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                        // Tính toán vị trí và kích thước của phần video muốn vẽ lên canvas
+                        const sourceX = this.video.videoWidth * 0.25;
+                        const sourceY = this.video.videoHeight * 0.25;
+                        const sourceWidth = this.video.videoWidth * 0.5;
+                        const sourceHeight = this.video.videoHeight * 0.5;
+
+                        // Vẽ phần đã chọn của video lên toàn bộ canvas
+                        this.context.drawImage(this.video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, this.canvas.width, this.canvas.height);
 
                         // Draw a square
                         // Define the square's properties
-                        const squareSize = this.SQUARE_SIZE_CAM; // Size of the square
+                        const squareSize = this.SQUARE_SIZE; // Size of the square
                         const squareX = (this.canvas.width - squareSize) / 2; // Center the square horizontally
                         const squareY = (this.canvas.height - squareSize) / 2; // Center the square vertically
 
