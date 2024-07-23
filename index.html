@@ -273,15 +273,24 @@
                         this.pauseVideo();
                         this.status = 'snapshot';
 
-                        const canvas = this.$refs.cvs;
-                        const canvasCamera = this.$refs.canvas;
-                        const context = canvas.getContext('2d');
-                        canvas.width = canvasCamera.width;
-                        canvas.height = canvasCamera.height;
-                        context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
+                        // Tạo một canvas tạm thời để chụp hình ảnh
+                        const tempCanvas = this.$refs.cvs;
+                        const tempContext = tempCanvas.getContext('2d');
+                        tempCanvas.width = this.SQUARE_SIZE;
+                        tempCanvas.height = this.SQUARE_SIZE;
+
+                        // Tính toán vị trí và kích thước của phần video muốn chụp
+                        const sourceX = this.video.videoWidth * 0.25 + (this.video.videoWidth * 0.5 - this.SQUARE_SIZE) / 2 + 25;
+                        const sourceY = this.video.videoHeight * 0.25 + (this.video.videoHeight * 0.5 - this.SQUARE_SIZE) / 2 + 25;
+                        const sourceWidth = this.SQUARE_SIZE - 50;
+                        const sourceHeight = this.SQUARE_SIZE - 50;
+
+                        // Chụp hình ảnh trong khung đỏ từ video và vẽ nó lên canvas tạm thời
+                        tempContext.drawImage(this.video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, tempCanvas.width, tempCanvas.height);
+
                         // Update this.snapshot with new image data
-                        this.snapshot = canvas.toDataURL();
-                        this.drawCanvas(canvas.width / 4, canvas.height / 4);
+                        this.snapshot = tempCanvas.toDataURL();
+                        this.drawCanvas(tempCanvas.width / 2, tempCanvas.height / 2);
                     },
                     makeSound() { // ④ おまけ：スナップショットをとるときに音をならす
                         document.querySelectorAll('.notification-iframe').forEach(el => el.remove()); // 全ての通知用 iFrame を削除
@@ -300,10 +309,10 @@
                     scaling() {
                         this.v = this.scale * 0.01;
                         if (this.ix === 0) {
-                            this.ix = this.img.width / 4;
+                            this.ix = this.img.width / 2;
                         }
                         if (this.iy === 0) {
-                            this.iy = this.img.height / 4;
+                            this.iy = this.img.height / 2;
                         }
                         this.drawCanvas(this.ix, this.iy);
                     },
@@ -320,7 +329,7 @@
                             ctx.fillStyle = 'rgb(200, 200, 200)';
                             ctx.fillRect(0, 0, cvs.width, cvs.height);
 
-                            ctx.drawImage(image, 0, 0, canvasCamera.width * 2, canvasCamera.height * 2, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
+                            ctx.drawImage(image, 0, 0, canvasCamera.width, canvasCamera.height, (cvs.width / 2) - x * this.v, (cvs.height / 2) - y * this.v, canvasCamera.width * this.v, canvasCamera.height * this.v);
 
                             ctx.strokeStyle = 'rgba(200, 0, 0, 0.8)';
                             ctx.strokeRect((cvs.width - this.$refs.out.width) / 2, (cvs.height - this.$refs.out.height) / 2, this.$refs.out.width, this.$refs.out.height);
@@ -366,10 +375,10 @@
                         const x = ev.pageX || ev.touches[0].pageX;
                         const y = ev.pageY || ev.touches[0].pageY;
                         if (this.ix === 0) {
-                            this.ix = this.img.width / 4;
+                            this.ix = this.img.width / 2;
                         }
                         if (this.iy === 0) {
-                            this.iy = this.img.height / 4;
+                            this.iy = this.img.height / 2;
                         }
                         this.drawCanvas(this.ix + (this.sx - x) / this.v, this.iy + (this.sy - y) / this.v);
                     },
