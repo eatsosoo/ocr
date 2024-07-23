@@ -207,10 +207,10 @@
                         }
 
                         // Calculate the position and size of the video part you want to draw on the canvas
-                        const sourceX = this.video.videoWidth * 0.25;
-                        const sourceY = this.video.videoHeight * 0.25;
-                        const sourceWidth = this.video.videoWidth * 0.5;
-                        const sourceHeight = this.video.videoHeight * 0.5;
+                        const sourceX = this.video.videoWidth * 0.3;
+                        const sourceY = this.video.videoHeight * 0.3;
+                        const sourceWidth = this.video.videoWidth * 0.6;
+                        const sourceHeight = this.video.videoHeight * 0.6;
 
                         // Draw the selected part of the video onto the entire canvas
                         this.context.drawImage(this.video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, this.canvas.width, this.canvas.height);
@@ -280,10 +280,10 @@
                         tempCanvas.height = this.SQUARE_SIZE;
 
                         // Tính toán vị trí và kích thước của phần video muốn chụp
-                        const sourceX = (this.canvas.width - this.SQUARE_SIZE) / 2;
-                        const sourceY = (this.canvas.height - this.SQUARE_SIZE) / 2;
-                        const sourceWidth = this.SQUARE_SIZE;
-                        const sourceHeight = this.SQUARE_SIZE;
+                        const sourceX = (this.canvas.width - this.SQUARE_SIZE) / 2 + 2;
+                        const sourceY = (this.canvas.height - this.SQUARE_SIZE) / 2 + 2;
+                        const sourceWidth = this.SQUARE_SIZE - 4;
+                        const sourceHeight = this.SQUARE_SIZE - 4;
 
                         // Chụp hình ảnh trong khung đỏ từ video và vẽ nó lên canvas tạm thời
                         tempContext.drawImage(this.canvas, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, tempCanvas.width, tempCanvas.height);
